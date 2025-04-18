@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Codebreaker</title>
+  <style>
+    * {
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+    body {
+      font-family:'Orbitron',sans-serif;
+      background:#0d0d0d; color:#00ffcc;
+      min-height:100vh; padding:60px 20px;
+      position:relative;
+    }
+    body::before {
+      content:''; position:absolute; top:0; left:0;
+      width:100%; height:100%;
+      background:linear-gradient(45deg,#ff0066,#00ffcc,transparent);
+      opacity:0.1; z-index:-1;
+    }
+
+    /* LAYOUT */
+    h1 {
+      font-size:3rem; color:#ff0066;
+      text-shadow:0 0 10px #ff0066;
+      margin-bottom:30px; text-align:center;
+      text-transform:uppercase; letter-spacing:3px;
+    }
+    .game-container {
+      max-width:700px; margin:0 auto;
+      padding:40px; background:rgba(0,0,0,0.8);
+      border:2px solid #00ffcc; border-radius:10px;
+      box-shadow:0 0 30px rgba(0,255,204,0.4);
+      text-align:center;
+    }
+
+    /* INPUT & BUTTON */
+    input[type="number"] {
+      padding:12px; margin:15px;
+      border:2px solid #ff00cc; border-radius:5px;
+      background:transparent; color:#00ffcc;
+      font-size:1.2rem; width:150px;
+      transition:all .3s ease;
+    }
+    input[type="number"]:focus {
+      border-color:#00ffcc;
+      box-shadow:0 0 15px rgba(0,255,204,0.5);
+      outline:none;
+    }
+    button {
+      padding:12px 25px; margin:10px;
+      border:none; border-radius:5px;
+      background:linear-gradient(90deg,#ff0066,#ff00cc);
+      color:#fff; font-size:1.1rem;
+      cursor:pointer; transition:all .3s ease;
+      text-transform:uppercase; letter-spacing:2px;
+      box-shadow:0 0 15px rgba(255,0,102,0.5);
+    }
+    button:hover:not(:disabled) {
+      background:linear-gradient(90deg,#00ffcc,#00ccff);
+      box-shadow:0 0 25px rgba(0,255,204,0.8);
+      transform:translateY(-2px);
+      color:#000;
+    }
+    button:disabled {
+      opacity:.4; cursor:not-allowed;
+    }
+
+    /* PESAN */
+    p { margin:15px 0; font-size:1.1rem; }
+    .bold-message { font-weight:bold; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+
+<body>
+  <h1>Codebreaker</h1>
+  <div class="game-container">
+    <p>Crack the code: Guess the number (1-100).</p>
+    <p>Attempts remaining: <span id="attempts">5</span></p>
+    <input type="number" id="guessInput" min="1" max="100" />
+    <button id="submitBtn">Submit</button>
+
+    <p id="message"></p>
+
+    <button onclick="location.href='games.html'">Back</button>
+    <button id="restartButton" style="display:none;">Restart</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const gameState = {
+        target: Math.floor(Math.random() * 100) + 1,
+        attempts: 5
+      };
+
+      const guessInput = document.getElementById('guessInput');
+      const submitBtn = document.getElementById('submitBtn');
+      const messageEl = document.getElementById('message');
+      const attemptsEl = document.getElementById('attempts');
+      const restartBtn = document.getElementById('restartButton');
+
+      const messages = {
+        invalid: 'Please enter a valid number between 1 and 100',
+        win: 'Congratulations! You won!',
+        lose: num => `Game Over! The number was ${num}`,
+        high: 'Too high! Try again',
+        low: 'Too low! Try again'
+      };
+
+      submitBtn.addEventListener('click', makeGuess);
+      restartBtn.addEventListener('click', restartGame);
+
+      function makeGuess() {
+        const guess = Number(guessInput.value);
+
+        if (!guess || guess < 1 || guess > 100) {
+          setMessage(messages.invalid, false);
+          return;
+        }
+
+        gameState.attempts--;
+        attemptsEl.textContent = gameState.attempts;
+
+        let outcome;
+        if (guess === gameState.target)      outcome = 'win';
+        else if (gameState.attempts === 0)   outcome = 'lose';
+        else outcome = guess > gameState.target ? 'high' : 'low';
+
+        switch (outcome) {
+          case 'win':
+            setMessage(messages.win, true);
+            endGame();
+            break;
+          case 'lose':
+            setMessage(messages.lose(gameState.target), true);
+            endGame();
+            break;
+          case 'high':
+          case 'low':
+            setMessage(messages[outcome], false);
+            break;
+        }
+      }
+
+      function setMessage(text, bold) {
+        messageEl.textContent = text;
+        messageEl.classList.toggle('bold-message', bold);
+      }
+
+      function endGame() {
+        guessInput.disabled = true;
+        submitBtn.disabled = true;
+        restartBtn.style.display = 'inline-block';
+      }
+
+      function restartGame() {
+        gameState.target = Math.floor(Math.random() * 100) + 1;
+        gameState.attempts = 5;
+        attemptsEl.textContent = gameState.attempts;
+
+        guessInput.disabled = false;
+        guessInput.value = '';
+        submitBtn.disabled = false;
+
+        restartBtn.style.display = 'none';
+        setMessage('', false);
+      }
+    });
+  </script>
+</body>
+</html>
